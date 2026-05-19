@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 2
 
 image:
   tag: "0.0.1-build.17-77666bc"
