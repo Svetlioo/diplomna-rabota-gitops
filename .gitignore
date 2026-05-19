@@ -1,0 +1,39 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*~
+
+# Helm
+charts/
+*.tgz
+.helmignore.local
+
+# Local overrides (never commit secrets or local-only values)
+*.local.yaml
+*.local.yml
+secrets/
+*.dec.yaml
+
+# kubectl/kubeconfig (NEVER commit cluster credentials)
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# Terraform state (if you accidentally drop tfstate here)
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Secrets (defense in depth — gitleaks should also catch these)
+*.pem
+*.key
+*.crt
+.env
+.env.*

@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: account-service-dev
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: account=ghcr.io/svetlioo/account-service
+    argocd-image-updater.argoproj.io/account.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/account.allow-tags: regexp:^\d+\.\d+\.\d+-build\.\d+-[a-f0-9]{7}$
+    argocd-image-updater.argoproj.io/account.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/account.helm.image-tag: image.tag
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/write-back-target: helmvalues:/environments/dev/values-account.yaml
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: diploma
+  source:
+    repoURL: https://github.com/Svetlioo/diplomna-rabota-gitops.git
+    targetRevision: main
+    path: helm-charts/account-service
+    helm:
+      valueFiles:
+        - ../../environments/dev/values-account.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

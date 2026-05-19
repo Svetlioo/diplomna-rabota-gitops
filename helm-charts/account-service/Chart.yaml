@@ -1,0 +1,6 @@
+apiVersion: v2
+name: account-service
+description: Account service for the diploma banking demo
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

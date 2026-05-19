@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: account-service-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: diploma
+  source:
+    repoURL: https://github.com/Svetlioo/diplomna-rabota-gitops.git
+    targetRevision: main
+    path: helm-charts/account-service
+    helm:
+      valueFiles:
+        - ../../environments/prod/values-account.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
