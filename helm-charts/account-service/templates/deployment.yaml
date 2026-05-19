@@ -28,6 +28,9 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          envFrom:
+            - secretRef:
+                name: account-service-db
           {{- with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
