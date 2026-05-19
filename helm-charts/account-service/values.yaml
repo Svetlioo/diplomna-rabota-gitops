@@ -43,7 +43,11 @@ probes:
     initialDelaySeconds: 10
     periodSeconds: 5
 
-env: []
+env:
+  - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+    value: "3"
+  - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+    value: "1"
 
 serviceAccount:
   create: true
