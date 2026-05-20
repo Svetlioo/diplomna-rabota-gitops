@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Verify Image Signatures
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      All container images pulled from ghcr.io/svetlioo/* into the application
+      namespaces (dev, test, prod) must carry a valid Cosign keyless signature
+      produced by the project's GitHub Actions CI workflow. Unsigned images
+      and images signed by any other identity are rejected at admission.
+spec:
+  validationFailureAction: Enforce
+  webhookConfiguration:
+    failurePolicy: Fail
+  background: false
+  rules:
+    - name: verify-ghcr-signatures
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - dev
+                - test
+                - prod
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/svetlioo/*"
+          attestors:
+            - entries:
+                - keyless:
+                    subject: "https://github.com/Svetlioo/diplomna-rabota/.github/workflows/account-service-ci.yml@refs/heads/main"
+                    issuer: "https://token.actions.githubusercontent.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev
