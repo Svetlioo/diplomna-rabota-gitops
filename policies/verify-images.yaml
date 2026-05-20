@@ -12,12 +12,15 @@ metadata:
       produced by the project's GitHub Actions CI workflow. Unsigned images
       and images signed by any other identity are rejected at admission.
 spec:
+  admission: true
+  background: false
+  emitWarning: false
   validationFailureAction: Enforce
   webhookConfiguration:
     failurePolicy: Fail
-  background: false
   rules:
     - name: verify-ghcr-signatures
+      skipBackgroundRequests: true
       match:
         any:
           - resources:
@@ -30,6 +33,10 @@ spec:
       verifyImages:
         - imageReferences:
             - "ghcr.io/svetlioo/*"
+          mutateDigest: true
+          verifyDigest: true
+          required: true
+          useCache: true
           attestors:
             - entries:
                 - keyless:
