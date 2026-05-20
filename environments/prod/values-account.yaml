@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  tag: "0.0.1-build.17-77666bc"
+  tag: "0.0.1-build.33-128e22c"
   digest: ""
 
 resources:
