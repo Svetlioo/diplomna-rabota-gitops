@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   tag: "0.0.1-build.35-02b0131"
-  digest: ""
+  digest: "sha256:0c44b10005b14bf25ac4c0064a4be8fddb2f4a2f1045c3d3bb06aac4f05c695f"
 
 resources:
   requests:

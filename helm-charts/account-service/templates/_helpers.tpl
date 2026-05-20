@@ -27,7 +27,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "account-service.image" -}}
-{{- if .Values.image.digest -}}
+{{- if and .Values.image.tag .Values.image.digest -}}
+{{ .Values.image.repository }}:{{ .Values.image.tag }}@{{ .Values.image.digest }}
+{{- else if .Values.image.digest -}}
 {{ .Values.image.repository }}@{{ .Values.image.digest }}
 {{- else -}}
 {{ .Values.image.repository }}:{{ .Values.image.tag }}
