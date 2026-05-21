@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/svetlioo/account-service
+  repository: ghcr.io/svetlioo/bank-service
   tag: ""
   digest: ""
   pullPolicy: IfNotPresent

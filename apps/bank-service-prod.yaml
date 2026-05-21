@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: account-service-dev
+  name: bank-service-prod
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,13 +10,13 @@ spec:
   source:
     repoURL: https://github.com/Svetlioo/diplomna-rabota-gitops.git
     targetRevision: main
-    path: helm-charts/account-service
+    path: helm-charts/bank-service
     helm:
       valueFiles:
-        - ../../environments/dev/values-account.yaml
+        - ../../environments/prod/values-bank.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: dev
+    namespace: prod
   syncPolicy:
     automated:
       prune: true
