@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       service:
-        description: Service to promote
+        description: Service(s) to promote
         type: choice
-        options: [bank, fraud]
+        options: [bank, fraud, both]
         required: true
       target:
         description: Target environment
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SVC: ${{ inputs.service }}
+      SERVICE: ${{ inputs.service }}
       TARGET: ${{ inputs.target }}
       BRANCH: promote/${{ inputs.service }}-${{ inputs.target }}-${{ github.run_id }}
     steps:
@@ -38,21 +38,23 @@ jobs:
             echo "SOURCE=test" >> "$GITHUB_ENV"
           fi
 
-      - name: Read source image
+      - name: Copy image(s) from source to target
         run: |
-          echo "TAG=$(yq '.image.tag' "environments/$SOURCE/values-$SVC.yaml")" >> "$GITHUB_ENV"
-          echo "DIGEST=$(yq '.image.digest' "environments/$SOURCE/values-$SVC.yaml")" >> "$GITHUB_ENV"
-
-      - name: Update target image
-        run: yq -i '.image.tag = strenv(TAG) | .image.digest = strenv(DIGEST)' "environments/$TARGET/values-$SVC.yaml"
+          if [ "$SERVICE" = "both" ]; then SERVICES="bank fraud"; else SERVICES="$SERVICE"; fi
+          for SVC in $SERVICES; do
+            export TAG=$(yq '.image.tag' "environments/$SOURCE/values-$SVC.yaml")
+            export DIGEST=$(yq '.image.digest' "environments/$SOURCE/values-$SVC.yaml")
+            yq -i '.image.tag = strenv(TAG) | .image.digest = strenv(DIGEST)' "environments/$TARGET/values-$SVC.yaml"
+          done
 
       - name: Open promotion PR
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git commit -am "promote($TARGET): $SVC $TAG"
+          git add environments/
+          git commit -m "promote($TARGET): $SERVICE"
           git push -u origin "$BRANCH"
           gh pr create --base main --head "$BRANCH" \
-            --title "promote($TARGET): $SVC $TAG" \
-            --body "Promote $SVC from $SOURCE to $TARGET (image $TAG)."
+            --title "promote($TARGET): $SERVICE" \
+            --body "Promote $SERVICE from $SOURCE to $TARGET."
