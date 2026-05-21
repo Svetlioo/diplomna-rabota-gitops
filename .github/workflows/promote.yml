@@ -1,0 +1,59 @@
+name: Promote image
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Service(s) to promote
+        type: choice
+        options: [bank, fraud, both]
+        required: true
+      path:
+        description: Promotion path (source to target)
+        type: choice
+        options:
+          - dev-to-test
+          - test-to-prod
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    name: Promote
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SERVICE: ${{ inputs.service }}
+      PATH_INPUT: ${{ inputs.path }}
+      BRANCH: promote/${{ inputs.service }}-${{ inputs.path }}-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Resolve source and target
+        run: |
+          echo "SOURCE=${PATH_INPUT%-to-*}" >> "$GITHUB_ENV"
+          echo "TARGET=${PATH_INPUT#*-to-}" >> "$GITHUB_ENV"
+
+      - name: Copy image(s) from source to target
+        run: |
+          if [ "$SERVICE" = "both" ]; then SERVICES="bank fraud"; else SERVICES="$SERVICE"; fi
+          for SVC in $SERVICES; do
+            export TAG=$(yq '.image.tag' "environments/$SOURCE/values-$SVC.yaml")
+            export DIGEST=$(yq '.image.digest' "environments/$SOURCE/values-$SVC.yaml")
+            yq -i '.image.tag = strenv(TAG) | .image.digest = strenv(DIGEST)' "environments/$TARGET/values-$SVC.yaml"
+          done
+
+      - name: Open promotion PR
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add environments/
+          git commit -m "promote($TARGET): $SERVICE from $SOURCE"
+          git push -u origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "promote($TARGET): $SERVICE from $SOURCE" \
+            --body "Promote $SERVICE from $SOURCE to $TARGET."
