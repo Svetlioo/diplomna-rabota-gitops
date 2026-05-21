@@ -1,34 +1,55 @@
-# diploma-gitops
+# diplomna-rabota-gitops
 
-GitOps source of truth for the diploma project. ArgoCD watches this repository and reconciles desired state to the AKS cluster.
+Desired state на клъстера. **ArgoCD** следи това репо и реконсилира средите
+`dev` / `test` / `prod` в AKS. Промени тук = промени в клъстера.
 
-## Structure
+## Структура
 
 ```
 .
-├── apps/                       ArgoCD Application manifests (one per service per environment)
-├── bootstrap/                  Root Application (app-of-apps) and AppProjects
-├── helm-charts/                Custom Helm charts for each microservice
-└── environments/               Per-environment Helm value overrides (dev, test, prod)
+├── apps/            ArgoCD Application манифести (по един на сервиз на среда) + kyverno-policies
+├── bootstrap/       Root Application (app-of-apps) + AppProject
+├── helm-charts/     Custom Helm charts за всеки сервиз (bank-service, fraud-detection)
+├── environments/    Per-env Helm values (dev/test/prod) — пинат едновременно tag + digest
+└── policies/        Kyverno ClusterPolicy (проверка на Cosign подписи)
 ```
 
-## Repository pattern
+## Поток на образите
 
-Trunk-based, single `main` branch, directory-per-environment. Promotion happens via pull requests that copy image tags between `environments/dev/`, `environments/test/`, and `environments/prod/`.
+1. CI в `diplomna-rabota` build-ва, подписва (Cosign keyless), публикува в
+   `ghcr.io/svetlioo/<сервиз>` + SBOM + SLSA provenance.
+2. **dev = автоматично** — CI отваря и **авто-merge-ва** PR тук, който обновява
+   `environments/dev/values-<сервиз>.yaml` с новия `tag` + `digest`. ArgoCD синква dev.
+   Деплойва се **само променения сервиз**; ако се променят два → два отделни PR-а.
+3. **test / prod = ръчно** през Promote workflow (виж по-долу).
+4. При admission **Kyverno** проверява Cosign подписа; неподписан или подменен образ
+   се отказва.
 
-This follows the Codefresh/ArgoCD recommendation against permanent per-environment branches.
+## Промоция между среди — `Promote image` workflow
 
-## Image flow
+`.github/workflows/promote.yml` (`workflow_dispatch`). Пуска се от **Actions → Promote image → Run workflow**:
 
-1. `diplomna-rabota` monorepo CI builds, signs (Cosign), and publishes images to `ghcr.io/svetlioo/<service>` with SBOM and SLSA provenance attached as OCI artifacts.
-2. ArgoCD Image Updater watches GHCR for new tags matching the SemVer + build pattern and writes the new tag to `environments/dev/values-*.yaml` on `main`.
-3. ArgoCD reconciles the `dev` namespace automatically. Promotion to `test` and `prod` is manual (pull request).
-4. Kyverno verifies the Cosign signature and SLSA provenance at admission. Pods with unsigned or unverifiable images are rejected.
+- **service:** `bank` / `fraud` / `both`
+- **path:** `dev-to-test` или `test-to-prod`
 
-## Environments
+Копира образа (`tag` + `digest`) от по-долната среда в по-горната и **отваря PR** —
+**не го мърджва автоматично**. Човек преглежда и одобрява (separation of duties).
+`prod` винаги взима **test-валидирания** образ, не директно от dev.
 
-| Namespace | Sync mode  | Source                       | Purpose                            |
-|-----------|------------|------------------------------|------------------------------------|
-| `dev`     | automatic  | latest signed image from CI  | Continuous integration target      |
-| `test`    | manual PR  | promoted from `dev`          | DAST (ZAP) and integration testing |
-| `prod`    | manual PR  | promoted from `test`         | Production-equivalent              |
+> Изисква в **Settings → Actions → General** да е включено
+> „Allow GitHub Actions to create and approve pull requests".
+
+## Среди
+
+| Namespace | Sync | Източник | Цел |
+|---|---|---|---|
+| `dev` | автоматично | последен подписан образ от CI | непрекъсната интеграция |
+| `test` | ръчен PR (Promote) | промотиран от `dev` | интеграционни тестове / DAST |
+| `prod` | ръчен PR (Promote) | промотиран от `test` | продукционно-еквивалентна |
+
+Trunk-based, един `main` branch, директория-на-среда. Промоцията е през PR-и, които
+копират образа между `environments/dev|test|prod/` — без постоянни per-env branch-ове.
+
+## Лиценз
+
+[Apache License 2.0](LICENSE)
