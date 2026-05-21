@@ -6,14 +6,6 @@ fraud-detection
 {{ include "fraud-detection.name" . }}
 {{- end -}}
 
-{{- define "fraud-detection.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-{{- default (include "fraud-detection.fullname" .) .Values.serviceAccount.name -}}
-{{- else -}}
-{{- default "default" .Values.serviceAccount.name -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "fraud-detection.labels" -}}
 app.kubernetes.io/name: {{ include "fraud-detection.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}

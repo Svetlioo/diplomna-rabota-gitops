@@ -14,7 +14,6 @@ spec:
       labels:
         {{- include "bank-service.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "bank-service.serviceAccountName" . }}
       automountServiceAccountToken: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

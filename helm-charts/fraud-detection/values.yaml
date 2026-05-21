@@ -46,7 +46,3 @@ probes:
 env:
   - name: FRAUD_AMOUNT_THRESHOLD
     value: "10000"
-
-serviceAccount:
-  create: true
-  name: ""

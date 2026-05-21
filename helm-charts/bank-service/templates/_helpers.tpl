@@ -6,14 +6,6 @@ bank-service
 {{ include "bank-service.name" . }}
 {{- end -}}
 
-{{- define "bank-service.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-{{- default (include "bank-service.fullname" .) .Values.serviceAccount.name -}}
-{{- else -}}
-{{- default "default" .Values.serviceAccount.name -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "bank-service.labels" -}}
 app.kubernetes.io/name: {{ include "bank-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
