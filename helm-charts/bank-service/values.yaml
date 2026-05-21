@@ -50,7 +50,3 @@ env:
     value: "1"
   - name: FRAUD_URL
     value: "http://fraud-detection:8000"
-
-serviceAccount:
-  create: true
-  name: ""

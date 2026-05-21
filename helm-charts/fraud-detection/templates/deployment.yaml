@@ -14,7 +14,6 @@ spec:
       labels:
         {{- include "fraud-detection.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "fraud-detection.serviceAccountName" . }}
       automountServiceAccountToken: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
