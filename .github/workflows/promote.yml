@@ -8,10 +8,12 @@ on:
         type: choice
         options: [bank, fraud, both]
         required: true
-      target:
-        description: Target environment
+      path:
+        description: Promotion path (source to target)
         type: choice
-        options: [test, prod]
+        options:
+          - dev-to-test
+          - test-to-prod
         required: true
 
 permissions:
@@ -25,18 +27,15 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SERVICE: ${{ inputs.service }}
-      TARGET: ${{ inputs.target }}
-      BRANCH: promote/${{ inputs.service }}-${{ inputs.target }}-${{ github.run_id }}
+      PATH_INPUT: ${{ inputs.path }}
+      BRANCH: promote/${{ inputs.service }}-${{ inputs.path }}-${{ github.run_id }}
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Resolve source environment
+      - name: Resolve source and target
         run: |
-          if [ "$TARGET" = "test" ]; then
-            echo "SOURCE=dev" >> "$GITHUB_ENV"
-          else
-            echo "SOURCE=test" >> "$GITHUB_ENV"
-          fi
+          echo "SOURCE=${PATH_INPUT%-to-*}" >> "$GITHUB_ENV"
+          echo "TARGET=${PATH_INPUT#*-to-}" >> "$GITHUB_ENV"
 
       - name: Copy image(s) from source to target
         run: |
@@ -53,8 +52,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add environments/
-          git commit -m "promote($TARGET): $SERVICE"
+          git commit -m "promote($TARGET): $SERVICE from $SOURCE"
           git push -u origin "$BRANCH"
           gh pr create --base main --head "$BRANCH" \
-            --title "promote($TARGET): $SERVICE" \
+            --title "promote($TARGET): $SERVICE from $SOURCE" \
             --body "Promote $SERVICE from $SOURCE to $TARGET."
