@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "account-service.fullname" . }}
+  name: {{ include "bank-service.fullname" . }}
   labels:
-    {{- include "account-service.labels" . | nindent 4 }}
+    {{- include "bank-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "account-service.selectorLabels" . | nindent 6 }}
+      {{- include "bank-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "account-service.selectorLabels" . | nindent 8 }}
+        {{- include "bank-service.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "account-service.serviceAccountName" . }}
+      serviceAccountName: {{ include "bank-service.serviceAccountName" . }}
       automountServiceAccountToken: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: app
-          image: {{ include "account-service.image" . }}
+          image: {{ include "bank-service.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
@@ -30,7 +30,7 @@ spec:
               protocol: TCP
           envFrom:
             - secretRef:
-                name: account-service-db
+                name: bank-service-db
           {{- with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
