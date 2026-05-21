@@ -40,7 +40,7 @@ spec:
           attestors:
             - entries:
                 - keyless:
-                    subjectRegExp: "^https://github\\.com/Svetlioo/diplomna-rabota/\\.github/workflows/bank-service-ci\\.yml@refs/heads/.+$"
+                    subjectRegExp: "^https://github\\.com/Svetlioo/diplomna-rabota/\\.github/workflows/[^/]+\\.yml@refs/heads/.+$"
                     issuer: "https://token.actions.githubusercontent.com"
                     rekor:
                       url: https://rekor.sigstore.dev
