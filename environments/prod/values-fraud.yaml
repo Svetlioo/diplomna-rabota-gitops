@@ -1,0 +1,5 @@
+replicaCount: 2
+
+image:
+  tag: "0.0.1-build.2-9925dfd"
+  digest: "sha256:b26cb7012350c7c113d3d2b94b401549beeea855a5315c05aaac4276935b286e"
