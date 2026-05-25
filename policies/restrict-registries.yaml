@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Pods in the application namespaces (dev, test, prod) may only run images
+      from ghcr.io/svetlioo/*, the project's own registry. Any image from another
+      registry is rejected at admission. This complements verify-image-signatures:
+      that policy requires a valid Cosign signature on project images, while this
+      one guarantees no image from an untrusted registry can be admitted at all
+      (signature verification alone never inspects foreign-registry images).
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: only-project-registry
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - dev
+                - test
+                - prod
+      validate:
+        message: "Images must come from ghcr.io/svetlioo/ — images from other registries are rejected."
+        pattern:
+          spec:
+            =(initContainers):
+              - image: "ghcr.io/svetlioo/*"
+            =(ephemeralContainers):
+              - image: "ghcr.io/svetlioo/*"
+            containers:
+              - image: "ghcr.io/svetlioo/*"

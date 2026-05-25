@@ -1,0 +1,4 @@
+# Namespace is assigned per environment by the ArgoCD Application
+# (destination.namespace -> dev/test/prod). The charts are intentionally
+# namespace-agnostic, so the static "default namespace" finding is a false positive.
+KSV-0110
