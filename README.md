@@ -9,9 +9,9 @@ Desired state на клъстера. **ArgoCD** следи това репо и 
 .
 ├── apps/            ArgoCD Application манифести (по един на сервиз на среда) + kyverno-policies
 ├── bootstrap/       Root Application (app-of-apps) + AppProject
-├── helm-charts/     Custom Helm charts за всеки сервиз (bank-service, fraud-detection)
+├── helm-charts/     Custom Helm charts за всеки сервиз (bank-service, fraud-detection, frontend)
 ├── environments/    Per-env Helm values (dev/test/prod) — пинат едновременно tag + digest
-└── policies/        Kyverno ClusterPolicy (проверка на Cosign подписи)
+└── policies/        Kyverno ClusterPolicy-та (verify-image-signatures + restrict-image-registries)
 ```
 
 ## Поток на образите
@@ -22,22 +22,25 @@ Desired state на клъстера. **ArgoCD** следи това репо и 
    `environments/dev/values-<сервиз>.yaml` с новия `tag` + `digest`. ArgoCD синква dev.
    Деплойва се **само променения сервиз**; ако се променят два → два отделни PR-а.
 3. **test / prod = ръчно** през Promote workflow (виж по-долу).
-4. При admission **Kyverno** проверява Cosign подписа; неподписан или подменен образ
-   се отказва.
+4. При admission **Kyverno** налага две политики: `verify-image-signatures` (Cosign подпис
+   + SLSA provenance + CycloneDX SBOM атестации) и `restrict-image-registries` (само
+   `ghcr.io/svetlioo/*`). Неподписан, неатестиран, подменен или образ от чуждо registry се отказва.
 
 ## Промоция между среди — `Promote image` workflow
 
 `.github/workflows/promote.yml` (`workflow_dispatch`). Пуска се от **Actions → Promote image → Run workflow**:
 
-- **service:** `bank` / `fraud` / `both`
+- **bank / fraud / frontend:** чекбокс на услуга — отмяташ **една или повече**
 - **path:** `dev-to-test` или `test-to-prod`
 
-Копира образа (`tag` + `digest`) от по-долната среда в по-горната и **отваря PR** —
-**не го мърджва автоматично**. Човек преглежда и одобрява (separation of duties).
-`prod` винаги взима **test-валидирания** образ, не директно от dev.
+Копира образите (`tag` + `digest`) на избраните услуги от по-долната среда в по-горната и
+**отваря един PR** — **не го мърджва автоматично**. Човек преглежда и одобрява (separation of
+duties). `prod` винаги взима **test-валидирания** образ, не директно от dev.
 
-> Изисква в **Settings → Actions → General** да е включено
-> „Allow GitHub Actions to create and approve pull requests".
+> Изисква: (1) в **Settings → Actions → General** включено „Allow GitHub Actions to create and
+> approve pull requests"; (2) secret **`GITOPS_TOKEN`** (fine-grained PAT) в това репо —
+> workflow-ът отваря PR-а с него, за да тръгнат required checks (PR, отворен с `GITHUB_TOKEN`,
+> не тригерира workflow-и → checks-овете никога не започват и PR-ът засяда).
 
 ## Среди
 
