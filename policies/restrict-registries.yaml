@@ -16,8 +16,11 @@ metadata:
 spec:
   validationFailureAction: Enforce
   background: true
+  admission: true
+  emitWarning: false
   rules:
     - name: only-project-registry
+      skipBackgroundRequests: true
       match:
         any:
           - resources:
@@ -29,6 +32,7 @@ spec:
                 - prod
       validate:
         message: "Images must come from ghcr.io/svetlioo/ — images from other registries are rejected."
+        allowExistingViolations: true
         pattern:
           spec:
             =(initContainers):

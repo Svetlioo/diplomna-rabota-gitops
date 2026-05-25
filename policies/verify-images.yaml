@@ -56,6 +56,7 @@ spec:
                         issuer: "https://token.actions.githubusercontent.com"
                         rekor:
                           url: https://rekor.sigstore.dev
+                      signatureAlgorithm: sha256
             - type: https://cyclonedx.org/bom
               attestors:
                 - entries:
@@ -64,3 +65,4 @@ spec:
                         issuer: "https://token.actions.githubusercontent.com"
                         rekor:
                           url: https://rekor.sigstore.dev
+                      signatureAlgorithm: sha256
