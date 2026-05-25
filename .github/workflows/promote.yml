@@ -3,11 +3,18 @@ name: Promote image
 on:
   workflow_dispatch:
     inputs:
-      service:
-        description: Service(s) to promote
-        type: choice
-        options: [bank, fraud, both]
-        required: true
+      bank:
+        description: Promote bank-service
+        type: boolean
+        default: false
+      fraud:
+        description: Promote fraud-detection
+        type: boolean
+        default: false
+      frontend:
+        description: Promote frontend
+        type: boolean
+        default: false
       path:
         description: Promotion path (source to target)
         type: choice
@@ -26,20 +33,31 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SERVICE: ${{ inputs.service }}
       PATH_INPUT: ${{ inputs.path }}
-      BRANCH: promote/${{ inputs.service }}-${{ inputs.path }}-${{ github.run_id }}
+      BANK: ${{ inputs.bank }}
+      FRAUD: ${{ inputs.fraud }}
+      FRONTEND: ${{ inputs.frontend }}
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Resolve source and target
+      - name: Resolve services and path
         run: |
+          SERVICES=""
+          if [ "$BANK" = "true" ]; then SERVICES="$SERVICES bank"; fi
+          if [ "$FRAUD" = "true" ]; then SERVICES="$SERVICES fraud"; fi
+          if [ "$FRONTEND" = "true" ]; then SERVICES="$SERVICES frontend"; fi
+          SERVICES="$(echo "$SERVICES" | xargs)"
+          if [ -z "$SERVICES" ]; then
+            echo "No service selected. Tick at least one (bank, fraud, frontend)." >&2
+            exit 1
+          fi
+          echo "SERVICES=$SERVICES" >> "$GITHUB_ENV"
+          echo "LABEL=$(echo "$SERVICES" | tr ' ' '+')" >> "$GITHUB_ENV"
           echo "SOURCE=${PATH_INPUT%-to-*}" >> "$GITHUB_ENV"
           echo "TARGET=${PATH_INPUT#*-to-}" >> "$GITHUB_ENV"
 
       - name: Copy image(s) from source to target
         run: |
-          if [ "$SERVICE" = "both" ]; then SERVICES="bank fraud"; else SERVICES="$SERVICE"; fi
           for SVC in $SERVICES; do
             export TAG=$(yq '.image.tag' "environments/$SOURCE/values-$SVC.yaml")
             export DIGEST=$(yq '.image.digest' "environments/$SOURCE/values-$SVC.yaml")
@@ -48,12 +66,13 @@ jobs:
 
       - name: Open promotion PR
         run: |
+          BRANCH="promote/$LABEL-$TARGET-${{ github.run_id }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add environments/
-          git commit -m "promote($TARGET): $SERVICE from $SOURCE"
+          git commit -m "promote($TARGET): $SERVICES from $SOURCE"
           git push -u origin "$BRANCH"
           gh pr create --base main --head "$BRANCH" \
-            --title "promote($TARGET): $SERVICE from $SOURCE" \
-            --body "Promote $SERVICE from $SOURCE to $TARGET."
+            --title "promote($TARGET): $LABEL from $SOURCE" \
+            --body "Promote $SERVICES from $SOURCE to $TARGET."
