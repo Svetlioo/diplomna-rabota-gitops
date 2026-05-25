@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
-  tag: "0.0.1-build.56-17354ca"
-  digest: "sha256:47a869ae10e24bcdfb3bfe4a9470b3933688ad05b7aa4244f9440136962eca89"
+  tag: "0.0.1-build.74-3385910"
+  digest: "sha256:f1c52bc06ece25c958cae660d74001537f15c65ae145f322c8ed0fe167f9f819"
 resources:
   requests:
     cpu: 50m
