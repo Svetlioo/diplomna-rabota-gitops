@@ -3,14 +3,16 @@ kind: ClusterPolicy
 metadata:
   name: verify-image-signatures
   annotations:
-    policies.kyverno.io/title: Verify Image Signatures
+    policies.kyverno.io/title: Verify Image Signatures and Attestations
     policies.kyverno.io/category: Supply Chain Security
     policies.kyverno.io/severity: high
     policies.kyverno.io/description: >-
       All container images pulled from ghcr.io/svetlioo/* into the application
       namespaces (dev, test, prod) must carry a valid Cosign keyless signature
-      produced by the project's GitHub Actions CI workflow. Unsigned images
-      and images signed by any other identity are rejected at admission.
+      from the project's CI, plus a CycloneDX SBOM attestation (signed by the CI)
+      and an SLSA provenance attestation (signed by the slsa-github-generator).
+      Images that are unsigned, signed by another identity, or missing either
+      attestation are rejected at admission.
 spec:
   admission: true
   background: false
@@ -45,3 +47,20 @@ spec:
                     rekor:
                       url: https://rekor.sigstore.dev
                   signatureAlgorithm: sha256
+          attestations:
+            - type: https://slsa.dev/provenance/v0.2
+              attestors:
+                - entries:
+                    - keyless:
+                        subjectRegExp: "^https://github\\.com/slsa-framework/slsa-github-generator/\\.github/workflows/generator_container_slsa3\\.yml@refs/tags/.+$"
+                        issuer: "https://token.actions.githubusercontent.com"
+                        rekor:
+                          url: https://rekor.sigstore.dev
+            - type: https://cyclonedx.org/bom
+              attestors:
+                - entries:
+                    - keyless:
+                        subjectRegExp: "^https://github\\.com/Svetlioo/diplomna-rabota/\\.github/workflows/[^/]+\\.yml@refs/heads/.+$"
+                        issuer: "https://token.actions.githubusercontent.com"
+                        rekor:
+                          url: https://rekor.sigstore.dev
