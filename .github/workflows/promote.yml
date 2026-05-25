@@ -32,13 +32,15 @@ jobs:
     name: Promote
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITOPS_TOKEN }}
       PATH_INPUT: ${{ inputs.path }}
       BANK: ${{ inputs.bank }}
       FRAUD: ${{ inputs.fraud }}
       FRONTEND: ${{ inputs.frontend }}
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
 
       - name: Resolve services and path
         run: |
