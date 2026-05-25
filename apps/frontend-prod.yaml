@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: diploma
+  source:
+    repoURL: https://github.com/Svetlioo/diplomna-rabota-gitops.git
+    targetRevision: main
+    path: helm-charts/frontend
+    helm:
+      valueFiles:
+        - ../../environments/prod/values-frontend.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
