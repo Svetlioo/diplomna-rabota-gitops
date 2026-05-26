@@ -44,6 +44,13 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: env-config
+              mountPath: /usr/share/nginx/html/env.json
+              subPath: env.json
+              readOnly: true
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: env-config
+          configMap:
+            name: {{ include "frontend.fullname" . }}-env

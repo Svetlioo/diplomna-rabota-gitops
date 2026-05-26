@@ -4,6 +4,9 @@ image:
   digest: ""
   pullPolicy: IfNotPresent
 
+# Environment name exposed to the UI via /env.json (badge in the header).
+env: local
+
 replicaCount: 1
 
 service:
