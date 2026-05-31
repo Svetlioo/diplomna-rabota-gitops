@@ -31,9 +31,10 @@ kubeconfig.*
 *.tfstate.*
 .terraform/
 
-# Secrets (defense in depth — gitleaks should also catch these)
+# Secrets (defense in depth; gitleaks should also catch these)
 *.pem
 *.key
 *.crt
 .env
 .env.*
+CLAUDE.md
