@@ -31,7 +31,7 @@ spec:
                 - test
                 - prod
       validate:
-        message: "Images must come from ghcr.io/svetlioo/ — images from other registries are rejected."
+        message: "Images must come from ghcr.io/svetlioo/. Images from other registries are rejected."
         allowExistingViolations: true
         pattern:
           spec:
