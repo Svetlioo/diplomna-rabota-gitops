@@ -1,5 +1,5 @@
 replicaCount: 1
 env: dev
 image:
-  tag: "0.0.1-build.34-22282e5"
-  digest: "sha256:437e5241c3e3313fc1c877e88bc18257147c98791c40ab8be84140f90d40fb6c"
+  tag: "0.0.1-build.44-f531021"
+  digest: "sha256:beed134b97ee3dd566f449c110d77136f6b2db0fc94a80f50ad1c1eecf5208fe"
