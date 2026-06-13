@@ -21,10 +21,10 @@
 
 1. CI в `diplomna-rabota` изгражда, подписва (Cosign keyless) и публикува образа в
    `ghcr.io/svetlioo/<услуга>` заедно със SBOM и SLSA provenance.
-2. **dev е автоматично.** CI отваря и слива pull request тук, който обновява
-   `environments/dev/values-<услуга>.yaml` с новия таг и digest. ArgoCD
-   синхронизира dev. Внедрява се само променената услуга.
-3. **test и prod са ръчни** през Promote workflow (по-долу).
+2. **Внедряването в `dev` е автоматично.** При сливане CI отваря pull request тук,
+   който обновява `environments/dev/values-<услуга>.yaml` с новия таг и digest, а
+   ArgoCD синхронизира `dev`. Внедрява се само променената услуга.
+3. **Внедряването в `test` и `prod` е ръчно** през Promote workflow (по-долу).
 4. При допускане Kyverno налага двете политики `verify-image-signatures` (Cosign
    подпис, SLSA provenance и CycloneDX SBOM attestation) и
    `restrict-image-registries` (само `ghcr.io/svetlioo/*`). Неподписан, подменен
@@ -32,12 +32,12 @@
 
 ## Придвижване между среди (Promote workflow)
 
-`.github/workflows/promote.yml` се пуска ръчно от **Actions → Promote image →
-Run workflow**. Избираш услуга (една или повече) и посока (`dev-to-test` или
-`test-to-prod`). Workflow-ът копира таг и digest от изходната среда в целевата и
-отваря pull request, който човек преглежда и слива. `prod` винаги получава
-образа, преминал валидация в `test`. Придвижва се същият подписан артефакт, без
-повторно изграждане.
+Файлът `.github/workflows/promote.yml` се пуска ръчно от **Actions → Promote
+image → Run workflow**. Избираш услуга (една или повече) и посока (`dev-to-test`
+или `test-to-prod`). Той копира таг и digest от изходната среда в целевата и
+отваря pull request, който човек преглежда и слива. Средата `prod` винаги
+получава образа, преминал валидация в `test`. Придвижва се същият подписан
+артефакт, без повторно изграждане.
 
 ## Среди
 
@@ -51,6 +51,8 @@ Run workflow**. Избираш услуга (една или повече) и п
 
 ## Настройка на хранилището (еднократно)
 
+- Gitleaks hook за тайни се активира еднократно след клониране с
+  `pre-commit install`.
 - Първоначално зареждане в клъстера след изградена инфраструктура от
   `diplomna-rabota-infra` с `kubectl apply -f bootstrap/`; root приложението
   създава останалите по модела app-of-apps.
@@ -61,8 +63,6 @@ Run workflow**. Избираш услуга (една или повече) и п
   автоматичния dev pull request.
 - Branch ruleset на `main` изисква pull request и преминали проверки (Gitleaks,
   Trivy config) и забранява директен push.
-- Gitleaks hook за тайни се активира еднократно след клониране с
-  `pre-commit install`.
 
 ## Лиценз
 
