@@ -12,7 +12,7 @@
 │   ├── fraud-detection/
 │   └── frontend/
 ├── apps/                    ArgoCD Application манифести (по услуга и среда)
-├── bootstrap/               root app-of-apps + AppProject
+├── bootstrap/               root app-of-apps и AppProject
 ├── policies/                Kyverno ClusterPolicy (подпис, регистри)
 └── environments/            values по среда с таг, digest и реплики
 ```
@@ -26,7 +26,7 @@
    синхронизира dev. Внедрява се само променената услуга.
 3. **test и prod са ръчни** през Promote workflow (по-долу).
 4. При допускане Kyverno налага двете политики `verify-image-signatures` (Cosign
-   подпис + SLSA provenance + CycloneDX SBOM attestation) и
+   подпис, SLSA provenance и CycloneDX SBOM attestation) и
    `restrict-image-registries` (само `ghcr.io/svetlioo/*`). Неподписан, подменен
    или чужд образ се отказва.
 
