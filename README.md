@@ -7,11 +7,14 @@
 
 ```
 .
-├── apps/            ArgoCD Application манифести (по един на услуга на среда) + kyverno-policies
-├── bootstrap/       Root Application (app-of-apps) + AppProject
-├── helm-charts/     Helm chart за всяка услуга (bank-service, fraud-detection, frontend)
-├── environments/    Values по среда (dev/test/prod) с таг и digest на образа, реплики и ресурси
-└── policies/        Kyverno ClusterPolicy (verify-image-signatures + restrict-image-registries)
+├── helm-charts/             Helm chart за всяка услуга
+│   ├── bank-service/
+│   ├── fraud-detection/
+│   └── frontend/
+├── apps/                    ArgoCD Application манифести (по услуга и среда)
+├── bootstrap/               root app-of-apps + AppProject
+├── policies/                Kyverno ClusterPolicy (подпис, регистри)
+└── environments/            values по среда с таг, digest и реплики
 ```
 
 ## Поток на образите
