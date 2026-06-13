@@ -37,4 +37,3 @@ kubeconfig.*
 *.crt
 .env
 .env.*
-CLAUDE.md
