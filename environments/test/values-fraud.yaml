@@ -1,4 +1,4 @@
 replicaCount: 1
 image:
-  tag: "0.0.3-build.134-a4f66c8"
-  digest: "sha256:6d908d220e71d515aa4e5e728f2977203c70bf2f1a593c5e4adade37d43df481"
+  tag: "0.0.4-build.136-c11e363"
+  digest: "sha256:700a0509fd4fedff5f0b33762a6aa4b5463c720dcd0cafd12160705e3bdfa2a0"
